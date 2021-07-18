@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>602</width>
+    <width>643</width>
     <height>267</height>
    </rect>
   </property>
@@ -360,6 +360,13 @@ background-color: rgba(154, 154, 154, 100);
 QPushButton:pressed{
 background-color: rgba(140, 140, 140, 100);
 border: 1px solid  rgba(140, 140, 140, 200);
+}
+QLineEdit{
+border-radius: 3;
+border: 1px solid grey;
+}
+QLineEdit:enabled {
+border: 1px solid rgb(62, 100, 200);
 }</string>
                </property>
                <property name="frameShape">
@@ -458,19 +465,26 @@ border: 1px solid  rgba(140, 140, 140, 200);
                          </property>
                          <item>
                           <widget class="QLabel" name="label">
+                           <property name="font">
+                            <font>
+                             <family>Century Gothic</family>
+                            </font>
+                           </property>
                            <property name="text">
-                            <string>File path (name)</string>
+                            <string>Ścieżka obrazu:</string>
                            </property>
                           </widget>
                          </item>
                          <item>
                           <widget class="QLineEdit" name="nazwa_pliku_obiekt">
+                           <property name="enabled">
+                            <bool>false</bool>
+                           </property>
                            <property name="styleSheet">
-                            <string notr="true">QLineEdit {
-	border: 0.5px solid grey;
-    border-radius: 3;
-
-}</string>
+                            <string notr="true"/>
+                           </property>
+                           <property name="placeholderText">
+                            <string>Uzupełniana automatycznie po połączeniu z serwerem</string>
                            </property>
                           </widget>
                          </item>
@@ -503,13 +517,27 @@ border: 1px solid  rgba(140, 140, 140, 200);
                          </property>
                          <item>
                           <widget class="QLabel" name="label_2">
+                           <property name="font">
+                            <font>
+                             <family>Century Gothic</family>
+                            </font>
+                           </property>
                            <property name="text">
-                            <string>Sample name</string>
+                            <string>Nazwa próbki:</string>
                            </property>
                           </widget>
                          </item>
                          <item>
                           <widget class="QPushButton" name="Button_getName">
+                           <property name="enabled">
+                            <bool>false</bool>
+                           </property>
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
                            <property name="maximumSize">
                             <size>
                              <width>60</width>
@@ -546,11 +574,7 @@ border: 1px solid  rgba(140, 140, 140, 200);
                          <item>
                           <widget class="QLineEdit" name="nazwa_probki_obiekt">
                            <property name="styleSheet">
-                            <string notr="true">QLineEdit {
-	border: 0.5px solid grey;
-    border-radius: 3;
-
-}</string>
+                            <string notr="true"/>
                            </property>
                           </widget>
                          </item>
@@ -668,7 +692,7 @@ border: 1px solid  rgba(140, 140, 140, 200);
                        <number>0</number>
                       </property>
                       <item alignment="Qt::AlignTop">
-                       <widget class="QPushButton" name="open_button">
+                       <widget class="QPushButton" name="collect_button">
                         <property name="sizePolicy">
                          <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
                           <horstretch>0</horstretch>
@@ -691,7 +715,8 @@ border: 1px solid  rgba(140, 140, 140, 200);
                          <string notr="true"/>
                         </property>
                         <property name="text">
-                         <string>Otwórz</string>
+                         <string>Pobierz obrazy
+z serwera</string>
                         </property>
                        </widget>
                       </item>

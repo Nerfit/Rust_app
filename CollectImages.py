@@ -6,7 +6,7 @@ Created on Tue Dec 22 12:50:26 2020
 @mail: dziarmag@student.agh.edu.pl
 """
 import cv2,time, os, shutil
-import urllib.request
+import requests
 import numpy as np
 
 class Collect_Images:
@@ -37,12 +37,12 @@ class Collect_Images:
 
         i=0
         while i < 15:
-
             i += 1
             try:
-                imgResponse=urllib.request.urlopen(url)
+                imgResponse2 = requests.get(url)
                 time.sleep(0.1)
-                imgnp=np.array(bytearray(imgResponse.read()),dtype=np.uint8)
+                # imgnp=np.array(bytearray(imgResponse.read()),dtype=np.uint8)
+                imgnp=np.array(bytearray(imgResponse2.content),dtype=np.uint8)
                 time.sleep(0.1)
                 img=cv2.imdecode(imgnp,-1)
 
@@ -52,15 +52,8 @@ class Collect_Images:
                 key=cv2.waitKey(5)
                 if key==ord('q'):
                     break;
-            except urllib.error.URLError:
-                print('Próba połączenia nie powiodła się, ponieważ połączona strona nie odpowiedziała poprawnie po ustalonym okresie czasu lub utworzone połączenie nie powiodło się, ponieważ połączony host nie odpowiedział')
-                cv2.destroyAllWindows()
-                break
             except KeyboardInterrupt:
                 cv2.destroyAllWindows()
                 print('Przerwano działanie programu')
                 break
         cv2.destroyAllWindows()
-    
-    
-    

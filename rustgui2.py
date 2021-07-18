@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(602, 267)
+        Form.resize(643, 267)
         Form.setMinimumSize(QtCore.QSize(602, 267))
         self.verticalLayout_8 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout_8.setContentsMargins(0, 0, 0, 0)
@@ -159,6 +159,13 @@ class Ui_Form(object):
 "QPushButton:pressed{\n"
 "background-color: rgba(140, 140, 140, 100);\n"
 "border: 1px solid  rgba(140, 140, 140, 200);\n"
+"}\n"
+"QLineEdit{\n"
+"border-radius: 3;\n"
+"border: 1px solid grey;\n"
+"}\n"
+"QLineEdit:enabled {\n"
+"border: 1px solid rgb(62, 100, 200);\n"
 "}")
         self.frame_btn_style.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_btn_style.setFrameShadow(QtWidgets.QFrame.Raised)
@@ -192,14 +199,14 @@ class Ui_Form(object):
         self.horizontalLayout_4.setSpacing(5)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.label = QtWidgets.QLabel(self.frame_18)
+        font = QtGui.QFont()
+        font.setFamily("Century Gothic")
+        self.label.setFont(font)
         self.label.setObjectName("label")
         self.horizontalLayout_4.addWidget(self.label)
         self.nazwa_pliku_obiekt = QtWidgets.QLineEdit(self.frame_18)
-        self.nazwa_pliku_obiekt.setStyleSheet("QLineEdit {\n"
-"    border: 0.5px solid grey;\n"
-"    border-radius: 3;\n"
-"\n"
-"}")
+        self.nazwa_pliku_obiekt.setEnabled(False)
+        self.nazwa_pliku_obiekt.setStyleSheet("")
         self.nazwa_pliku_obiekt.setObjectName("nazwa_pliku_obiekt")
         self.horizontalLayout_4.addWidget(self.nazwa_pliku_obiekt)
         self.verticalLayout_12.addWidget(self.frame_18)
@@ -212,9 +219,18 @@ class Ui_Form(object):
         self.horizontalLayout_3.setSpacing(5)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_2 = QtWidgets.QLabel(self.frame_17)
+        font = QtGui.QFont()
+        font.setFamily("Century Gothic")
+        self.label_2.setFont(font)
         self.label_2.setObjectName("label_2")
         self.horizontalLayout_3.addWidget(self.label_2)
         self.Button_getName = QtWidgets.QPushButton(self.frame_17)
+        self.Button_getName.setEnabled(False)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.Button_getName.sizePolicy().hasHeightForWidth())
+        self.Button_getName.setSizePolicy(sizePolicy)
         self.Button_getName.setMaximumSize(QtCore.QSize(60, 20))
         self.Button_getName.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.Button_getName.setStyleSheet("")
@@ -228,11 +244,7 @@ class Ui_Form(object):
         self.Button_getName.setObjectName("Button_getName")
         self.horizontalLayout_3.addWidget(self.Button_getName)
         self.nazwa_probki_obiekt = QtWidgets.QLineEdit(self.frame_17)
-        self.nazwa_probki_obiekt.setStyleSheet("QLineEdit {\n"
-"    border: 0.5px solid grey;\n"
-"    border-radius: 3;\n"
-"\n"
-"}")
+        self.nazwa_probki_obiekt.setStyleSheet("")
         self.nazwa_probki_obiekt.setObjectName("nazwa_probki_obiekt")
         self.horizontalLayout_3.addWidget(self.nazwa_probki_obiekt)
         self.verticalLayout_12.addWidget(self.frame_17)
@@ -282,20 +294,20 @@ class Ui_Form(object):
         self.horizontalLayout_10.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_10.setSpacing(5)
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
-        self.open_button = QtWidgets.QPushButton(self.frame_9)
+        self.collect_button = QtWidgets.QPushButton(self.frame_9)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.open_button.sizePolicy().hasHeightForWidth())
-        self.open_button.setSizePolicy(sizePolicy)
-        self.open_button.setMinimumSize(QtCore.QSize(75, 20))
+        sizePolicy.setHeightForWidth(self.collect_button.sizePolicy().hasHeightForWidth())
+        self.collect_button.setSizePolicy(sizePolicy)
+        self.collect_button.setMinimumSize(QtCore.QSize(75, 20))
         font = QtGui.QFont()
         font.setFamily("Century Gothic")
         font.setPointSize(9)
-        self.open_button.setFont(font)
-        self.open_button.setStyleSheet("")
-        self.open_button.setObjectName("open_button")
-        self.horizontalLayout_10.addWidget(self.open_button, 0, QtCore.Qt.AlignTop)
+        self.collect_button.setFont(font)
+        self.collect_button.setStyleSheet("")
+        self.collect_button.setObjectName("collect_button")
+        self.horizontalLayout_10.addWidget(self.collect_button, 0, QtCore.Qt.AlignTop)
         self.horizontalLayout_5.addWidget(self.frame_9)
         self.verticalLayout_9.addWidget(self.frame_10)
         self.frame_11 = QtWidgets.QFrame(self.frame_btn_style)
@@ -635,11 +647,13 @@ class Ui_Form(object):
         Form.setWindowTitle(_translate("Form", "Form"))
         self.pushButton_analyze_page.setText(_translate("Form", "Analiza płytek"))
         self.pushButton_set_col_page.setText(_translate("Form", "Ustaw kolor ręcznie"))
-        self.label.setText(_translate("Form", "File path (name)"))
-        self.label_2.setText(_translate("Form", "Sample name"))
+        self.label.setText(_translate("Form", "Ścieżka obrazu:"))
+        self.nazwa_pliku_obiekt.setPlaceholderText(_translate("Form", "Uzupełniana automatycznie po połączeniu z serwerem"))
+        self.label_2.setText(_translate("Form", "Nazwa próbki:"))
         self.start_button.setText(_translate("Form", "Start"))
         self.save_button.setText(_translate("Form", "Zapisz wynik"))
-        self.open_button.setText(_translate("Form", "Otwórz"))
+        self.collect_button.setText(_translate("Form", "Pobierz obrazy\n"
+"z serwera"))
         self.label_5.setText(_translate("Form", "Korozja [%]:"))
         self.label_6.setText(_translate("Form", "Płytka [%]:"))
         self.label_7.setText(_translate("Form", "Tło [%]:"))

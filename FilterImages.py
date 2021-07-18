@@ -20,6 +20,10 @@ class Filter_Images:
             raise Exception("Brak obiektu nadrzędnego - GUI")
 
     def filtruj(self):
+        """
+        Function responsible for filtering images
+        :return: Path to filtered image
+        """
         image_folder=self.path
         file_list = os.listdir(image_folder)
         file_list = [os.path.join(image_folder, x) for x in file_list if x.endswith(('.PNG', '.png'))]
@@ -33,19 +37,11 @@ class Filter_Images:
             image_stacks[i] = np.array(im)
             print("\r", 'Processing photos... {:2.1%}'.format(processed_img/len(file_list)), end='')
 
-
         image_median = np.median(image_stacks, axis=0).astype(np.uint8)
-        # image_median = Image.fromarray(image_median)
-        # comparison=np.hstack((image_stacks[0],image_median))
-        # cv2.imwrite('Przed.PNG', image_stacks[0])
-        cv2.imwrite(image_folder + 'Po_median.PNG', image_median)
-        # hi_res=cv2.resize(image_median, (3200, 2400))
+        cv2.imwrite(image_folder + 'PlytkaReferencyjna.PNG', image_median)
+        self.GUI.ui.status.setText('Obraz został przefiltrowany ...')
+        return image_folder + 'PlytkaReferencyjna.PNG'
 
-        # key=cv2.waitKey(0)
-        # if key==ord('q'):
-        #     cv2.destroyAllWindows()
-        GUI.ui.nazwa_pliku_obiekt.setText(image_folder + 'Po_median.PNG')
-        self.ui.nazwa_pliku_obiekt.setEnabled(False)
 
 
 
