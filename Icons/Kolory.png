@@ -1,0 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Oct 24 09:41:26 2019
+
+@author: kxdnrj
+"""
+
+import cv2
+    flags = [i for i in dir(cv2) if i.startswith('COLOR_')]
+    print flags

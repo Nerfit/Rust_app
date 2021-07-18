@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="Open">
+    <file>Icons/Ico.png</file>
+    <file>Icons/Ico_transparentAGH.png</file>
+    <file>Icons/mask.png</file>
+    <file>Icons/bg_color.png</file>
+    <file>Icons/SampleName.png</file>
+    <file>Icons/info.png</file>
+    <file>Icons/BGmask_button.PNG</file>
+    <file>Icons/Manual_color.PNG</file>
+    <file>Icons/BG_button.PNG</file>
+    <file>Icons/Monitor.PNG</file>
+    <file>Icons/ColorRange.PNG</file>
+    <file>Icons/Okna_P_i_R.PNG</file>
+    <file>Icons/Open.PNG</file>
+    <file>Icons/GetName.PNG</file>
+  </qresource>
+</RCC>
