@@ -6,7 +6,7 @@ Created on Tue Jan 12 11:23:16 2021
 @mail: dziarmag@student.agh.edu.pl
 """
 import numpy as np
-import os, cv2
+import os, cv2, time
 
 class Filter_Images:
     def __init__(self, GUI=None, path=None):
@@ -24,6 +24,7 @@ class Filter_Images:
         Function responsible for filtering images
         :return: Path to filtered image
         """
+        start = time.time()
         image_folder=self.path
         file_list = os.listdir(image_folder)
         file_list = [os.path.join(image_folder, x) for x in file_list if x.endswith(('.PNG', '.png'))]
@@ -40,10 +41,8 @@ class Filter_Images:
         image_median = np.median(image_stacks, axis=0).astype(np.uint8)
         cv2.imwrite(image_folder + 'PlytkaReferencyjna.PNG', image_median)
         self.GUI.ui.status.setText('Obraz został przefiltrowany ...')
+        end = time.time()
+        print('\n')
+        print(end-start)
         return image_folder + 'PlytkaReferencyjna.PNG'
-
-
-
-
-
 

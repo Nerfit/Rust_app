@@ -36,13 +36,13 @@ class Collect_Images:
             os.makedirs('Zdj')
 
         i=0
-        while i < 15:
+        # Loop: here I'm downloading 10 images from the server and saving them locally on drive
+        while i < 10:
             i += 1
             try:
-                imgResponse2 = requests.get(url)
+                imgResponse = requests.get(url)
                 time.sleep(0.1)
-                # imgnp=np.array(bytearray(imgResponse.read()),dtype=np.uint8)
-                imgnp=np.array(bytearray(imgResponse2.content),dtype=np.uint8)
+                imgnp=np.array(bytearray(imgResponse.content),dtype=np.uint8)
                 time.sleep(0.1)
                 img=cv2.imdecode(imgnp,-1)
 

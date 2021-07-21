@@ -35,7 +35,6 @@ class Wykrywanie_rdzy(QWidget):
         self.setWindowTitle('System wizyjny do analizy korozji')
         self.interface()
 
-# ------------------After 'Start' clicked-----------------------
     def get_images(self):
         """
         Function calling collector and then filter objects
@@ -52,11 +51,24 @@ class Wykrywanie_rdzy(QWidget):
             self.ui.start_button.setEnabled(True)
 
     def start(self):
+        """
+        Function that is being executed after the start button is pressed.
+        :return:
+        """
         global rdza_tmp
         global mask_new
         rdza_tmp = None
         mask = None
-        def okno(event,x,y,flags,param):#creating a window with zoomed plate
+        def okno(event,x,y, flags, param):
+            """
+            Creating a window with zoomed plate
+            :param event: Event triggered e.g. mouse click
+            :param x: x coordinate
+            :param y: y coordinate
+            :param flags:
+            :param param:
+            :return:
+            """
             if event == cv2.EVENT_LBUTTONDOWN:
                 #calculating coordinates of the window
                 zoom_p = 50
@@ -87,7 +99,16 @@ class Wykrywanie_rdzy(QWidget):
                 cv2.imshow('zoom     **Podwojny przycisk myszy dodaje korozje**',zoomed_img)
                 cv2.waitKey(20)
 
-        def okno2(event,x,y,flags,param):#creating a window with zoomed corrosion
+        def okno2(event,x,y, flags, param):
+            """
+            Creating a window with zoomed corrosion
+            :param event: Event triggered e.g. mouse click
+            :param x: x coordinate
+            :param y: y coordinate
+            :param flags:
+            :param param:
+            :return:
+            """
             if event == cv2.EVENT_LBUTTONDOWN:
                 #calculating coordinates of the window
                 zoom_p2 = 50
@@ -118,7 +139,13 @@ class Wykrywanie_rdzy(QWidget):
                 cv2.imshow('zoom     **Podwojny przycisk myszy odejmuje korozje**',zoomed_img2)
                 cv2.waitKey(20)
 
-        def kolor(event,x,y,flags,param): #adding some rust
+        def kolor(event,x,y, flags, param):
+            """
+            Function responsible for adding some rust
+            :param event: Event triggered e.g. mouse click
+            :param x: x coordinate
+            :param y: y coordinate
+            """
             if event == cv2.EVENT_LBUTTONDBLCLK:
                 b_maski,g_maski,r_maski=(zoomed_img[y,x])
                 #temporary rust mask
@@ -129,7 +156,14 @@ class Wykrywanie_rdzy(QWidget):
                 rdza_tmp = cv2.dilate(rdza_tmp,ones((3,3), uint8),iterations = 1)
                 self.mask_new = cv2.bitwise_or(rdza_tmp,mask)
 
-        def kolor2(event,x,y,flags,param): #subtracting rust
+        def kolor2(event,x,y, flags, param):
+            """
+            Function responsible for subtracting rust
+            :param event: Event triggered e.g. mouse click
+            :param x: x coordinate
+            :param y: y coordinate
+            :return:
+            """
             if event == cv2.EVENT_LBUTTONDBLCLK:
                 b_maski,g_maski,r_maski=(zoomed_img2[y,x])
                 zakres2 = cv2.getTrackbarPos('ColorRange','zoom     **Podwojny przycisk myszy odejmuje korozje**')
@@ -140,15 +174,14 @@ class Wykrywanie_rdzy(QWidget):
                 rdza_tmp2 = cv2.dilate(rdza_tmp2,ones((3,3), uint8),iterations = 1)
                 self.mask_new = cv2.subtract(mask, rdza_tmp2)
 
-
-#        -------------------------------- GUI PART--------------------------
+        # GUI
         self.ui.status.setText("Busy")
         self.nazwa_pliku=self.ui.nazwa_pliku_obiekt.text()
 
-#-------------------Reading Image----------------------------------------------
+        # Reading Image
         self.bgr_img = cv2.imread(self.nazwa_pliku,1)
         try:
-            self.h, self.w = self.bgr_img.shape[:2]#dimensions
+            self.h, self.w = self.bgr_img.shape[:2] #image dimensions
         except AttributeError:
             msg = QtWidgets.QMessageBox().warning(self, "Warning", "Nejpierw pobierz obraz z serwera!")
             self.ui.status.setText("...")
@@ -164,12 +197,12 @@ class Wykrywanie_rdzy(QWidget):
         self.hsv_img = cv2.cvtColor(self.bgr_img, cv2.COLOR_BGR2HSV)
         b,g,r = cv2.split(self.bgr_img)#color arrays
         self.mask_new = None
-#-------------------------------LET THE LOoOP BEGIN!-----------------------------------
+        # Here the main loop starts
         while True:
             self.nazwa_probki=self.ui.nazwa_probki_obiekt.text()
             lower_red = array([0,80,30])
             upper_red = array([20,255,180])
-#-----------------------Rust Range--------------------------
+            # Rust Range
             if mask is None:
                 mask = cv2.inRange(self.hsv_img, lower_red, upper_red)
                 mask = cv2.dilate(mask, ones((3,3), uint8), iterations = 1)
@@ -177,15 +210,16 @@ class Wykrywanie_rdzy(QWidget):
                 mask = cv2.dilate(mask, ones((4,4), uint8), iterations = 1)
             if self.mask_new is not None:
                 mask = self.mask_new
-#-----------------------background range--------------------------
+            # Background range
             h = self.ui.spinBox_H.value()
             s = self.ui.spinBox_S.value()
             v = self.ui.spinBox_V.value()
             if h == -255:
-                l_czysciwo = array([80,9,0])        #earlier version: [80,6,0]__________________________________________________________
+                l_czysciwo = array([80,9,0])        #previous variant: [80,6,0]
                 u_czysciwo = array([120,255,255])
                 mask_rev = cv2.inRange(self.hsv_img, l_czysciwo, u_czysciwo)
             else:
+                # Setting the background range basing on selected HSV color
                 l_czysciwo = array([h-20,s-150,v-150])
                 u_czysciwo = array([h+20,s+150,v+150])
                 mask_rev = cv2.inRange(self.hsv_img, l_czysciwo, u_czysciwo)
@@ -197,7 +231,8 @@ class Wykrywanie_rdzy(QWidget):
             mask_rcz = cv2.bitwise_or(mask, mask_cz)    #plate + background mask
             mask_p = cv2.bitwise_not(mask_rcz)          #<----------maska płytki(dobra) (bez rdzy)
             mask_pcz = cv2.bitwise_or(mask_p, mask_cz)
-#-----------------------------COLOR OF THE BACKGROUND MASK-----------------------
+
+            # COLOR OF THE BACKGROUND MASK
             self.bgr_img_cz = self.bgr_img.copy()
             self.bgr_img_cz[mask_cz > 0] = [216, 20, 255]
 
@@ -205,7 +240,7 @@ class Wykrywanie_rdzy(QWidget):
             overlay = self.bgr_img_cz.copy()
             output = self.bgr_img.copy()
             alpha = 0.25                 #<-------------0 is fully transparent, while 1 is fully opaque
-            cv2.addWeighted(overlay, alpha, output, 1- alpha,0, output)
+            cv2.addWeighted(overlay, alpha, output, 1 - alpha,0, output)
 
             if self.ui.checkBox_bg_mask.isChecked():
                 self.rdza = cv2.bitwise_and(output,output, mask = mask_rcz)
@@ -216,11 +251,11 @@ class Wykrywanie_rdzy(QWidget):
             if rdza_tmp is not None:
                 self.plytka = cv2.bitwise_and(self.plytka,self.plytka, mask = mask)
             cv2.namedWindow('Plytka     (Wcisnij ESC zeby zamknac)',cv2.WINDOW_NORMAL)
-#            -----------------------bardzo prymitywny warunek skalowania(ale działa)------------
+            # skalowanie okna
             if self.h > 3300:
-                rescale = 5                 #   <-------------------Image scale 1:5------------
+                rescale = 5         # Frame scale 1:5
             else:
-                rescale = 2
+                rescale = 2         # Frame scale 1:2
             cv2.resizeWindow('Plytka     (Wcisnij ESC zeby zamknac)', int(self.w/rescale),int(self.h/rescale))
             cv2.namedWindow('Rdza     (Wcisnij ESC zeby zamknac)',cv2.WINDOW_NORMAL)
             cv2.resizeWindow('Rdza     (Wcisnij ESC zeby zamknac)', int(self.w/rescale),int(self.h/rescale))
@@ -229,9 +264,9 @@ class Wykrywanie_rdzy(QWidget):
             cv2.setMouseCallback('Plytka     (Wcisnij ESC zeby zamknac)',okno)
             cv2.setMouseCallback('Rdza     (Wcisnij ESC zeby zamknac)',okno2)
 
-#------------------------Calculating quantity of pixels----------------------------
-            self.H, self.W = self.bgr_img.shape[:2]         #<------------pixel after image processing
-            self.n_pix=self.H*self.W            #pixel qty.
+            # Calculating quantity of pixels
+            self.H, self.W = self.bgr_img.shape[:2]         # Pixel after image processing
+            self.n_pix=self.H*self.W            # Pixels quantity
             self.n_plytka = sum(mask_pr == 255)
             self.n_rdza_pix = sum(mask == 255)
             self.rdza_percent = str(round((self.n_rdza_pix/self.n_plytka)*100,2))
@@ -242,7 +277,7 @@ class Wykrywanie_rdzy(QWidget):
             self.ui.lcd_plate.display(self.plate_percent)
             self.ui.lcd_bg.display(self.bg_percent)
 
-#-----------------------Closing the loop----------------------
+            # Closing the loop
             key = cv2.waitKey(1)
             if key == 27:
                 cv2.destroyWindow('Plytka     (Wcisnij ESC zeby zamknac)')
@@ -255,12 +290,11 @@ class Wykrywanie_rdzy(QWidget):
     # def filename(self):
     #     self.filepath, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open file", None, "Image Files (*.jpg *.png)")
     #     self.ui.nazwa_pliku_obiekt.setText(self.filepath)
-#------------------------------------------ZAPIS WYNIKÓW-------------------------
     def save(self):
         """
-        Funkction responsible for saving the analysis results
+        Function responsible for saving the analysis results
         """
-        #-------------------making a new directory if it's not made yet-----------------
+        # making a new directory if it's not made yet
         cwd = path.dirname('\\'.join((self.ui.nazwa_pliku_obiekt.text()).split('\\')[0:-1])) + '\\Results\\'
         if path.exists(cwd):
             if path.isdir(cwd):
@@ -269,7 +303,7 @@ class Wykrywanie_rdzy(QWidget):
                 makedirs(cwd, mode=0o777, exist_ok=False)
         else:
             makedirs(cwd, mode=0o777, exist_ok=False)
-        #---------------------------graphic results + Error handling---------------------
+        # Graphical results + Error handling
         try:
             self.nazwa_probki = self.ui.nazwa_probki_obiekt.text()
             plikG1 = cwd + self.nazwa_probki + '_grafical_results1.png'
@@ -285,7 +319,6 @@ class Wykrywanie_rdzy(QWidget):
             return 0
 
         self.ui.progressBar.setValue(90)
-
         plikTXT = cwd + self.nazwa_probki + '_result.txt'
         self.ui.progressBar.setValue(98)
         wynik_txt = "Korozja [%]: " + self.rdza_percent + '\n' + 'Płytka [%]: ' + self.plate_percent + '\n' + 'Tło [%]: ' + self.bg_percent
@@ -296,10 +329,25 @@ class Wykrywanie_rdzy(QWidget):
         self.ui.status.setText("Saved")
 
     def getName(self):
+        """
+        Get the sample name from path
+        :return:
+        """
         self.ui.nazwa_probki_obiekt.setText(path.basename(self.ui.nazwa_pliku_obiekt.text())[:-4])
+
     def nothing(self, x):
+        """
+        Empty function.
+        :param x:
+        :return:
+        """
         pass
+
     def okno_bg_color(self):
+        """
+        Prepare a window for setting the background color
+        :return:
+        """
         self.ui.bg_color_btn.setEnabled(False)
         self.nazwa_probki=self.ui.nazwa_probki_obiekt.text()
         self.nazwa_pliku=self.ui.nazwa_pliku_obiekt.text()
@@ -322,7 +370,7 @@ class Wykrywanie_rdzy(QWidget):
         self.zoomed_img3 = self.hsv_img
         while True:
             cv2.namedWindow('DoubleClick to set the Background Color',cv2.WINDOW_NORMAL)
-            cv2.createTrackbar('DoubleClick','Click to set the Background Color',5,10, self.nothing)
+            # cv2.createTrackbar('DoubleClick to set the Background Color',5,10, self.nothing)
             cv2.resizeWindow('DoubleClick to set the Background Color', 500,600 )
             cv2.setMouseCallback('DoubleClick to set the Background Color',self.bg_color_change)
             cv2.imshow('DoubleClick to set the Background Color',self.zoomed_img3)
@@ -335,7 +383,6 @@ class Wykrywanie_rdzy(QWidget):
     def bg_color_change(self,event,x,y,flags,param): #subtracting rust
         if event == cv2.EVENT_LBUTTONDBLCLK:
             H_bg,S_bg,V_bg=(self.zoomed_img3[y,x])
-#            zakres2 = cv2.getTrackbarPos('ColorRange','DoubleClick to set the Background Color')
             #temporary rust mask
             self.ui.spinBox_H.setValue(H_bg)
             self.ui.spinBox_S.setValue(S_bg)
@@ -344,7 +391,7 @@ class Wykrywanie_rdzy(QWidget):
             
     def help_txt(self):
         help_text(self).show()
-#------------------Connecting buttons from GUI with corresponding functions-----------------
+    # Connecting buttons from GUI with corresponding functions
     def interface(self):
         self.ui.start_button.clicked.connect(self.start)
         self.ui.save_button.clicked.connect(self.save)
@@ -354,45 +401,6 @@ class Wykrywanie_rdzy(QWidget):
         self.ui.pushButton_info.clicked.connect(self.help_txt)
         self.ui.pushButton_analyze_page.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_analyze))
         self.ui.pushButton_set_col_page.clicked.connect(lambda: self.ui.stackedWidget.setCurrentWidget(self.ui.page_set_col))
-
-    # def change_behaviour(self, next_behaviour):
-    #     """
-    #     It takes a string value and assigned it to self.behaviour.
-    #     :param next_behaviour: String value that should ba assigned to 'behaviour' attribute
-    #     :return:
-    #     """
-    #     self.clean_gui()
-    #     self.behaviour = next_behaviour
-    #     self.threadclass.start()
-
-# class ThreadClass(QtCore.QThread):
-#     def __init__(self, parent=Wykrywanie_rdzy):
-#         super(ThreadClass, self).__init__(None)
-#
-#     change_state = pyqtSignal(int)
-#     signal_dialog = pyqtSignal(str)
-#     signal_progress = pyqtSignal(int, int)
-#     signal_dir_name_popup = pyqtSignal()
-#     signal_files_uploaded_popup = pyqtSignal()
-#
-#     @pyqtSlot()
-#     def run(self):
-#         if 'widget' in globals():
-#             if window.behaviour == 'cb_structure':
-#                 cb_doc.get_cb_structure(customer_only=True, progressBar=True)
-#                 window.behaviour = None
-#             elif window.behaviour == 'local_structure':
-#                 cb_doc.get_local_structure()
-#                 window.behaviour = None
-#
-#
-#     def show_dialog(self, file_name=''):
-#         self.signal_dialog.emit(file_name)
-#
-#     def stop(self):
-#         self.terminate()
-#         cb_doc.set_stopped()
-
 
 if __name__ == "__main__":
     app = QApplication(argv)
