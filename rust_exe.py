@@ -6,6 +6,7 @@ Created on Sat Aug 15 09:24:57 2020
 @mail: dziarmag@student.agh.edu.pl
 """
 from sys import argv, exit
+import matplotlib.pyplot as plt
 from os import getcwd, path, makedirs
 from numpy import array, ones, uint8, sum
 import cv2, os
@@ -32,7 +33,7 @@ class Wykrywanie_rdzy(QWidget):
         super(Wykrywanie_rdzy,self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        self.setWindowTitle('System wizyjny do analizy korozji')
+        self.setWindowTitle('System wizyjny do analizy korozjina płytkach referencyjnych')
         self.interface()
 
     def get_images(self):
@@ -58,7 +59,7 @@ class Wykrywanie_rdzy(QWidget):
         global rdza_tmp
         global mask_new
         rdza_tmp = None
-        mask = None
+        mask_k = None
         def okno(event,x,y, flags, param):
             """
             Creating a window with zoomed plate
@@ -154,7 +155,7 @@ class Wykrywanie_rdzy(QWidget):
                 upper_mask = array([b_maski+zakres,g_maski+zakres,r_maski+zakres])
                 rdza_tmp = cv2.inRange(self.bgr_img, lower_mask, upper_mask)
                 rdza_tmp = cv2.dilate(rdza_tmp,ones((3,3), uint8),iterations = 1)
-                self.mask_new = cv2.bitwise_or(rdza_tmp,mask)
+                self.mask_new = cv2.bitwise_or(rdza_tmp,mask_k)
 
         def kolor2(event,x,y, flags, param):
             """
@@ -172,7 +173,7 @@ class Wykrywanie_rdzy(QWidget):
                 upper_mask = array([b_maski+zakres2,g_maski+zakres2,r_maski+zakres2])
                 rdza_tmp2 = cv2.inRange(self.bgr_img, lower_mask, upper_mask)
                 rdza_tmp2 = cv2.dilate(rdza_tmp2,ones((3,3), uint8),iterations = 1)
-                self.mask_new = cv2.subtract(mask, rdza_tmp2)
+                self.mask_new = cv2.subtract(mask_k, rdza_tmp2)
 
         # GUI
         self.ui.status.setText("Busy")
@@ -193,7 +194,7 @@ class Wykrywanie_rdzy(QWidget):
             self.bgr_img = cv2.rotate(self.bgr_img, cv2.ROTATE_90_CLOCKWISE)
             self.h, self.w = self.bgr_img.shape[:2]
 
-        self.bgr_img = cv2.resize(self.bgr_img, (1000,1400))
+        self.bgr_img = cv2.resize(self.bgr_img, (1200,1600))
         self.hsv_img = cv2.cvtColor(self.bgr_img, cv2.COLOR_BGR2HSV)
         b,g,r = cv2.split(self.bgr_img)#color arrays
         self.mask_new = None
@@ -203,13 +204,13 @@ class Wykrywanie_rdzy(QWidget):
             lower_red = array([0,80,30])
             upper_red = array([20,255,180])
             # Rust Range
-            if mask is None:
-                mask = cv2.inRange(self.hsv_img, lower_red, upper_red)
-                mask = cv2.dilate(mask, ones((3,3), uint8), iterations = 1)
-                mask = cv2.erode(mask, ones((4,4), uint8), iterations = 1)
-                mask = cv2.dilate(mask, ones((4,4), uint8), iterations = 1)
+            if mask_k is None:
+                mask_k = cv2.inRange(self.hsv_img, lower_red, upper_red)
+                mask_k = cv2.dilate(mask_k, ones((3,3), uint8), iterations = 1)
+                mask_k = cv2.erode(mask_k, ones((4,4), uint8), iterations = 1)
+                mask_k = cv2.dilate(mask_k, ones((4,4), uint8), iterations = 1)
             if self.mask_new is not None:
-                mask = self.mask_new
+                mask_k = self.mask_new
             # Background range
             h = self.ui.spinBox_H.value()
             s = self.ui.spinBox_S.value()
@@ -222,19 +223,20 @@ class Wykrywanie_rdzy(QWidget):
                 # Setting the background range basing on selected HSV color
                 l_czysciwo = array([h-20,s-150,v-150])
                 u_czysciwo = array([h+20,s+150,v+150])
-                mask_rev = cv2.inRange(self.hsv_img, l_czysciwo, u_czysciwo)
-
+                mask_rev = cv2.inRange(self.hsv_img, l_czysciwo, u_czysciwo)    # Black plate only
             kernel1 = ones((70,70),uint8)
+            # cv2.namedWindow('TEST',cv2.WINDOW_NORMAL)
             cv2.morphologyEx(mask_rev, cv2.MORPH_CLOSE, kernel1, iterations = 2)
-            mask_cz = cv2.medianBlur(mask_rev, 15)      #<---------background mask
-            mask_pr = cv2.bitwise_not(mask_cz)          #<---------plate + rust mask
-            mask_rcz = cv2.bitwise_or(mask, mask_cz)    #plate + background mask
-            mask_p = cv2.bitwise_not(mask_rcz)          #<----------maska płytki(dobra) (bez rdzy)
-            mask_pcz = cv2.bitwise_or(mask_p, mask_cz)
+            mask_t = cv2.medianBlur(mask_rev, 15)      #<---------background (white)
+            mask_pr = cv2.bitwise_not(mask_t)          #<---------plate, rust (white)
+            mask_rcz = cv2.bitwise_or(mask_k, mask_t)    #rust + background mask (white), plate black
+            mask_p = cv2.bitwise_not(mask_rcz)          #<----------maska: płytka(biała) (bez rdzy i tła: czarne)
+            mask_pcz = cv2.bitwise_or(mask_p, mask_t)  #<----------tylko rdza czarna
+            # cv2.imshow('TEST', mask_k)
 
             # COLOR OF THE BACKGROUND MASK
             self.bgr_img_cz = self.bgr_img.copy()
-            self.bgr_img_cz[mask_cz > 0] = [216, 20, 255]
+            self.bgr_img_cz[mask_t > 0] = [216, 20, 255]
 
 #            ----------------Transparency of the background mask-----------------------
             overlay = self.bgr_img_cz.copy()
@@ -249,7 +251,7 @@ class Wykrywanie_rdzy(QWidget):
                 self.rdza = cv2.bitwise_and(self.bgr_img,self.bgr_img, mask = mask_rcz)
                 self.plytka = cv2.bitwise_and(self.bgr_img,self.bgr_img, mask = mask_pcz)
             if rdza_tmp is not None:
-                self.plytka = cv2.bitwise_and(self.plytka,self.plytka, mask = mask)
+                self.plytka = cv2.bitwise_and(self.plytka,self.plytka, mask = mask_k)
             cv2.namedWindow('Plytka     (Wcisnij ESC zeby zamknac)',cv2.WINDOW_NORMAL)
             # skalowanie okna
             if self.h > 3300:
@@ -266,16 +268,22 @@ class Wykrywanie_rdzy(QWidget):
 
             # Calculating quantity of pixels
             self.H, self.W = self.bgr_img.shape[:2]         # Pixel after image processing
-            self.n_pix=self.H*self.W            # Pixels quantity
-            self.n_plytka = sum(mask_pr == 255)
-            self.n_rdza_pix = sum(mask == 255)
-            self.rdza_percent = str(round((self.n_rdza_pix/self.n_plytka)*100,2))
-            self.n_czysciwo = sum(mask_cz == 255)
-            self.bg_percent = str(round((self.n_czysciwo/self.n_pix)*100, 2))
-            self.plate_percent = str(round(100 - (self.n_czysciwo/self.n_pix)*100, 2))
-            self.ui.lcd_rust.display(self.rdza_percent)
-            self.ui.lcd_plate.display(self.plate_percent)
-            self.ui.lcd_bg.display(self.bg_percent)
+            self.n_pix=self.H*self.W        # Liczba pikseli obrazu
+            self.n_t = sum(mask_t == 255)  # Liczba pikseli tła
+            self.n_p = self.n_pix-self.n_t  # Liczba pikseli płytki
+            self.n_k = sum(mask_k == 255)     # Liczba pikseli korozji
+            self.t = (self.n_t / self.n_pix) * 100
+            self.p = 100 - self.t
+            self.k = (self.n_k / self.n_p) * 100
+
+            self.t = str(round(self.t, 2))
+            self.p = str(round(self.p, 2))
+            self.k = str(round(self.k, 2))
+
+
+            self.ui.lcd_rust.display(self.k)
+            self.ui.lcd_plate.display(self.p)
+            self.ui.lcd_bg.display(self.t)
 
             # Closing the loop
             key = cv2.waitKey(1)
@@ -287,9 +295,9 @@ class Wykrywanie_rdzy(QWidget):
                 self.ui.start_button.setEnabled(True)
                 break
 
-    # def filename(self):
-    #     self.filepath, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open file", None, "Image Files (*.jpg *.png)")
-    #     self.ui.nazwa_pliku_obiekt.setText(self.filepath)
+    def filename(self):
+        self.filepath, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open file", None, "Image Files (*.jpg *.png)")
+        self.ui.nazwa_pliku_obiekt.setText(self.filepath)
     def save(self):
         """
         Function responsible for saving the analysis results
@@ -321,9 +329,9 @@ class Wykrywanie_rdzy(QWidget):
         self.ui.progressBar.setValue(90)
         plikTXT = cwd + self.nazwa_probki + '_result.txt'
         self.ui.progressBar.setValue(98)
-        wynik_txt = "Korozja [%]: " + self.rdza_percent + '\n' + 'Płytka [%]: ' + self.plate_percent + '\n' + 'Tło [%]: ' + self.bg_percent
+        wynik_txt = "Korozja [%]: " + self.k + '\n' + 'Płytka [%]: ' + self.p + '\n' + 'Tło [%]: ' + self.t
         plikTXT = open(cwd + self.nazwa_probki + '_result.txt', 'w')
-        plikTXT.write("___________Wyniki dla próbki " + self.nazwa_probki + "___________\n\n" + wynik_txt)
+        plikTXT.write("Wyniki dla próbki:\t" + self.nazwa_probki + "\n" + wynik_txt)
         plikTXT.close()
         self.ui.progressBar.setValue(100)
         self.ui.status.setText("Saved")
@@ -365,18 +373,18 @@ class Wykrywanie_rdzy(QWidget):
             self.bgr_img = cv2.rotate(self.bgr_img, cv2.ROTATE_90_CLOCKWISE)
             self.h, self.w = self.bgr_img.shape[:2]
 
-        self.bgr_img = cv2.resize(self.bgr_img, (1000,1400))
+        self.bgr_img = cv2.resize(self.bgr_img, (1200,1600))
         self.hsv_img = cv2.cvtColor(self.bgr_img, cv2.COLOR_BGR2HSV)
         self.zoomed_img3 = self.hsv_img
         while True:
-            cv2.namedWindow('DoubleClick to set the Background Color',cv2.WINDOW_NORMAL)
-            # cv2.createTrackbar('DoubleClick to set the Background Color',5,10, self.nothing)
-            cv2.resizeWindow('DoubleClick to set the Background Color', 500,600 )
-            cv2.setMouseCallback('DoubleClick to set the Background Color',self.bg_color_change)
-            cv2.imshow('DoubleClick to set the Background Color',self.zoomed_img3)
+            cv2.namedWindow('2xLPM zeby ustawic kolor tla',cv2.WINDOW_NORMAL)
+            # cv2.createTrackbar('2xLPM zeby ustawic kolor tla',5,10, self.nothing)
+            cv2.resizeWindow('2xLPM zeby ustawic kolor tla', 500,600 )
+            cv2.setMouseCallback('2xLPM zeby ustawic kolor tla',self.bg_color_change)
+            cv2.imshow('2xLPM zeby ustawic kolor tla',self.zoomed_img3)
             key = cv2.waitKey(100)
-            if key == 27 or cv2.getWindowProperty('DoubleClick to set the Background Color', 0) < 0:
-                cv2.destroyWindow('DoubleClick to set the Background Color')
+            if key == 27 or cv2.getWindowProperty('2xLPM zeby ustawic kolor tla', 0) < 0:
+                cv2.destroyWindow('2xLPM zeby ustawic kolor tla')
                 self.ui.bg_color_btn.setEnabled(True)
                 break
 
@@ -395,7 +403,8 @@ class Wykrywanie_rdzy(QWidget):
     def interface(self):
         self.ui.start_button.clicked.connect(self.start)
         self.ui.save_button.clicked.connect(self.save)
-        self.ui.collect_button.clicked.connect(self.get_images)
+        # self.ui.collect_button.clicked.connect(self.get_images)
+        self.ui.collect_button.clicked.connect(self.filename)
         self.ui.Button_getName.clicked.connect(self.getName)
         self.ui.bg_color_btn.clicked.connect(self.okno_bg_color)
         self.ui.pushButton_info.clicked.connect(self.help_txt)

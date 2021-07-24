@@ -25,6 +25,7 @@ class Collect_Images:
         Function used to collect images from ESP32-CAM webserver
         :return:
         """
+        start = time.time()
         path = self.path
         url='http://192.168.31.201/cam-hi.jpg'
         cv2.namedWindow('ESP32_CAM',cv2.WINDOW_NORMAL)
@@ -56,4 +57,7 @@ class Collect_Images:
                 cv2.destroyAllWindows()
                 print('Przerwano działanie programu')
                 break
+        end = time.time()
+        print('\n Czas pobierania obrazów:')
+        print(end - start)
         cv2.destroyAllWindows()
