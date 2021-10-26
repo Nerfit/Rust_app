@@ -202,7 +202,8 @@ class Wykrywanie_rdzy(QWidget):
         while True:
             self.nazwa_probki=self.ui.nazwa_probki_obiekt.text()
             lower_red = array([0,80,30])
-            upper_red = array([20,255,180])
+            upper_red = array([40,255,180])
+            # upper_red = array([20,255,180])
             # Rust Range
             if mask_k is None:
                 mask_k = cv2.inRange(self.hsv_img, lower_red, upper_red)
@@ -216,13 +217,17 @@ class Wykrywanie_rdzy(QWidget):
             s = self.ui.spinBox_S.value()
             v = self.ui.spinBox_V.value()
             if h == -255:
-                l_czysciwo = array([80,9,0])        #previous variant: [80,6,0]
-                u_czysciwo = array([120,255,255])
+                # l_czysciwo = array([80, 9, 0])  # previous variant: [80,6,0]
+                # u_czysciwo = array([120, 255, 255])
+                l_czysciwo = array([107, 147, 0])  # previous variant: [80,6,0]
+                u_czysciwo = array([137, 255, 255])
                 mask_rev = cv2.inRange(self.hsv_img, l_czysciwo, u_czysciwo)
             else:
                 # Setting the background range basing on selected HSV color
-                l_czysciwo = array([h-20,s-150,v-150])
-                u_czysciwo = array([h+20,s+150,v+150])
+                l_czysciwo = array([h-15,s-50,v-150])
+                u_czysciwo = array([h+15,s+100,v+150])
+                # l_czysciwo = array([h-20,s-100,v-150])
+                # u_czysciwo = array([h+20,s+100,v+150])
                 mask_rev = cv2.inRange(self.hsv_img, l_czysciwo, u_czysciwo)    # Black plate only
             kernel1 = ones((70,70),uint8)
             # cv2.namedWindow('TEST',cv2.WINDOW_NORMAL)
@@ -259,12 +264,12 @@ class Wykrywanie_rdzy(QWidget):
             else:
                 rescale = 2         # Frame scale 1:2
             cv2.resizeWindow('Plytka     (Wcisnij ESC zeby zamknac)', int(self.w/rescale),int(self.h/rescale))
-            cv2.namedWindow('Rdza     (Wcisnij ESC zeby zamknac)',cv2.WINDOW_NORMAL)
-            cv2.resizeWindow('Rdza     (Wcisnij ESC zeby zamknac)', int(self.w/rescale),int(self.h/rescale))
+            cv2.namedWindow('Korozja     (Wcisnij ESC zeby zamknac)',cv2.WINDOW_NORMAL)
+            cv2.resizeWindow('Korozja     (Wcisnij ESC zeby zamknac)', int(self.w/rescale),int(self.h/rescale))
             cv2.imshow('Plytka     (Wcisnij ESC zeby zamknac)', self.plytka)
-            cv2.imshow('Rdza     (Wcisnij ESC zeby zamknac)', self.rdza)
+            cv2.imshow('Korozja     (Wcisnij ESC zeby zamknac)', self.rdza)
             cv2.setMouseCallback('Plytka     (Wcisnij ESC zeby zamknac)',okno)
-            cv2.setMouseCallback('Rdza     (Wcisnij ESC zeby zamknac)',okno2)
+            cv2.setMouseCallback('Korozja     (Wcisnij ESC zeby zamknac)',okno2)
 
             # Calculating quantity of pixels
             self.H, self.W = self.bgr_img.shape[:2]         # Pixel after image processing
@@ -289,7 +294,7 @@ class Wykrywanie_rdzy(QWidget):
             key = cv2.waitKey(1)
             if key == 27:
                 cv2.destroyWindow('Plytka     (Wcisnij ESC zeby zamknac)')
-                cv2.destroyWindow('Rdza     (Wcisnij ESC zeby zamknac)')
+                cv2.destroyWindow('Korozja     (Wcisnij ESC zeby zamknac)')
                 cv2.destroyWindow('zoom     **Podwojny przycisk myszy dodaje korozje**')
                 cv2.destroyWindow('zoom     **Podwojny przycisk myszy odejmuje korozje**')
                 self.ui.start_button.setEnabled(True)
@@ -303,7 +308,8 @@ class Wykrywanie_rdzy(QWidget):
         Function responsible for saving the analysis results
         """
         # making a new directory if it's not made yet
-        cwd = path.dirname('\\'.join((self.ui.nazwa_pliku_obiekt.text()).split('\\')[0:-1])) + '\\Results\\'
+        cwd = os.path.abspath(os.getcwd()) + '\\Results\\'
+        print(cwd)
         if path.exists(cwd):
             if path.isdir(cwd):
                 pass
@@ -317,6 +323,7 @@ class Wykrywanie_rdzy(QWidget):
             plikG1 = cwd + self.nazwa_probki + '_grafical_results1.png'
             plikG2 = cwd + self.nazwa_probki + '_grafical_results2.png'
             plikG3 = cwd + self.nazwa_probki + '_original.png'
+            print(plikG1)
             cv2.imwrite(plikG1,self.plytka)
             cv2.imwrite(plikG2,self.rdza)
             cv2.imwrite(plikG3,self.bgr_img)
@@ -403,8 +410,8 @@ class Wykrywanie_rdzy(QWidget):
     def interface(self):
         self.ui.start_button.clicked.connect(self.start)
         self.ui.save_button.clicked.connect(self.save)
-        # self.ui.collect_button.clicked.connect(self.get_images)
-        self.ui.collect_button.clicked.connect(self.filename)
+        self.ui.collect_button.clicked.connect(self.get_images)
+        # self.ui.collect_button.clicked.connect(self.filename)
         self.ui.Button_getName.clicked.connect(self.getName)
         self.ui.bg_color_btn.clicked.connect(self.okno_bg_color)
         self.ui.pushButton_info.clicked.connect(self.help_txt)
