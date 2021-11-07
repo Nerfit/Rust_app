@@ -30,8 +30,8 @@ This program is able to analyze local images as well as to communicate with exte
 
 
 ## SETUP
-###1. Install modules used in project by command:
+1. Install modules used in project by command:
 "python -m pip install -r requirements.txt"
 
-###2. Run program from command line using: 
+2. Run program from command line using: 
 "python rust_exe.py"
