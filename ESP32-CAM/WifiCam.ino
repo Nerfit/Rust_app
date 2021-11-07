@@ -5,7 +5,7 @@
 
 
 const char* WIFI_SSID = "Net_227";
-const char* WIFI_PASS = "4rdcbgt5";
+const char* WIFI_PASS = "******";
 
 WebServer server(80);
 
