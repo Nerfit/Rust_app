@@ -6,7 +6,6 @@ Created on Sat Aug 15 09:24:57 2020
 @mail: dziarmag@student.agh.edu.pl
 """
 from sys import argv, exit
-import matplotlib.pyplot as plt
 from os import getcwd, path, makedirs
 from numpy import array, ones, uint8, sum
 import cv2, os
@@ -16,13 +15,15 @@ from rustgui2 import Ui_Form
 from help_t import Ui_Dialog
 from CollectImages import Collect_Images
 from FilterImages import Filter_Images
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal)
 # Converting files commands
 # pyuic5 -x -o rustgui2.py rustgui2.ui
 # pyrcc5 -o Zasoby_rc.py Zasoby.qrc
 # ------------------second GUI with instructions-------------------
 class help_text(QDialog):
     def __init__(self, parent = None):
+        """
+        Function used to display Help Dialog
+        """
         super(help_text,self).__init__(parent)
         self.help_ui = Ui_Dialog()
         self.help_ui.setupUi(self)
@@ -54,7 +55,6 @@ class Wykrywanie_rdzy(QWidget):
     def start(self):
         """
         Function that is being executed after the start button is pressed.
-        :return:
         """
         global rdza_tmp
         global mask_new
@@ -102,7 +102,7 @@ class Wykrywanie_rdzy(QWidget):
 
         def okno2(event,x,y, flags, param):
             """
-            Creating a window with zoomed corrosion
+            Creating a window with zoomed corrosion area
             :param event: Event triggered e.g. mouse click
             :param x: x coordinate
             :param y: y coordinate
@@ -198,7 +198,7 @@ class Wykrywanie_rdzy(QWidget):
         self.hsv_img = cv2.cvtColor(self.bgr_img, cv2.COLOR_BGR2HSV)
         b,g,r = cv2.split(self.bgr_img)#color arrays
         self.mask_new = None
-        # Here the main loop starts
+        # Here the main loop starts where calculations are being done
         while True:
             self.nazwa_probki=self.ui.nazwa_probki_obiekt.text()
             lower_red = array([0,80,30])
@@ -293,14 +293,15 @@ class Wykrywanie_rdzy(QWidget):
             # Closing the loop
             key = cv2.waitKey(1)
             if key == 27:
-                cv2.destroyWindow('Plytka     (Wcisnij ESC zeby zamknac)')
-                cv2.destroyWindow('Korozja     (Wcisnij ESC zeby zamknac)')
-                cv2.destroyWindow('zoom     **Podwojny przycisk myszy dodaje korozje**')
-                cv2.destroyWindow('zoom     **Podwojny przycisk myszy odejmuje korozje**')
+                cv2.destroyAllWindows()
                 self.ui.start_button.setEnabled(True)
                 break
 
     def filename(self):
+        """
+        Display Dialog window to select image for analysis
+        :return:
+        """
         self.filepath, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open file", None, "Image Files (*.jpg *.png)")
         self.ui.nazwa_pliku_obiekt.setText(self.filepath)
     def save(self):
@@ -352,7 +353,7 @@ class Wykrywanie_rdzy(QWidget):
 
     def nothing(self, x):
         """
-        Empty function.
+        Empty function (sometimes used with trackbar callback)
         :param x:
         :return:
         """
@@ -383,19 +384,27 @@ class Wykrywanie_rdzy(QWidget):
         self.bgr_img = cv2.resize(self.bgr_img, (1200,1600))
         self.hsv_img = cv2.cvtColor(self.bgr_img, cv2.COLOR_BGR2HSV)
         self.zoomed_img3 = self.hsv_img
-        while True:
-            cv2.namedWindow('2xLPM zeby ustawic kolor tla',cv2.WINDOW_NORMAL)
-            # cv2.createTrackbar('2xLPM zeby ustawic kolor tla',5,10, self.nothing)
-            cv2.resizeWindow('2xLPM zeby ustawic kolor tla', 500,600 )
-            cv2.setMouseCallback('2xLPM zeby ustawic kolor tla',self.bg_color_change)
-            cv2.imshow('2xLPM zeby ustawic kolor tla',self.zoomed_img3)
+        cv2.namedWindow('2xLPM zeby ustawic kolor tla', cv2.WINDOW_NORMAL)
+        cv2.resizeWindow('2xLPM zeby ustawic kolor tla', 500, 600)
+        cv2.setMouseCallback('2xLPM zeby ustawic kolor tla', self.bg_color_change)
+        cv2.imshow('2xLPM zeby ustawic kolor tla', self.zoomed_img3)
+        while cv2.getWindowProperty('2xLPM zeby ustawic kolor tla', cv2.WND_PROP_VISIBLE) > 0: # if window is not closed by "x"
             key = cv2.waitKey(100)
-            if key == 27 or cv2.getWindowProperty('2xLPM zeby ustawic kolor tla', 0) < 0:
+            if key == 27:
                 cv2.destroyWindow('2xLPM zeby ustawic kolor tla')
-                self.ui.bg_color_btn.setEnabled(True)
                 break
+        self.ui.bg_color_btn.setEnabled(True)
 
-    def bg_color_change(self,event,x,y,flags,param): #subtracting rust
+    def bg_color_change(self,event,x,y,flags,param):
+        """
+        Function used to set the spinbox values according to selected background color
+        :param event: Event triggered
+        :param x: x coord
+        :param y: y coord
+        :param flags: Not required here
+        :param param: Not required here
+        :return:
+        """
         if event == cv2.EVENT_LBUTTONDBLCLK:
             H_bg,S_bg,V_bg=(self.zoomed_img3[y,x])
             #temporary rust mask
@@ -405,13 +414,21 @@ class Wykrywanie_rdzy(QWidget):
             msg = QtWidgets.QMessageBox().about(self, "Done", "Color Set Successfully!")
             
     def help_txt(self):
+        """
+        Function used to call Help class containing Help dialog
+        :return:
+        """
         help_text(self).show()
     # Connecting buttons from GUI with corresponding functions
     def interface(self):
+        """
+        Function which connects user's interactions in GUI with proper functions
+        :return:
+        """
         self.ui.start_button.clicked.connect(self.start)
         self.ui.save_button.clicked.connect(self.save)
-        self.ui.collect_button.clicked.connect(self.get_images)
-        # self.ui.collect_button.clicked.connect(self.filename)
+        # self.ui.collect_button.clicked.connect(self.get_images)       # downlowad images from ESP32-CAM   (uncomment one option)
+        self.ui.collect_button.clicked.connect(self.filename)           # load image from PC    (uncomment one option)
         self.ui.Button_getName.clicked.connect(self.getName)
         self.ui.bg_color_btn.clicked.connect(self.okno_bg_color)
         self.ui.pushButton_info.clicked.connect(self.help_txt)

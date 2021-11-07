@@ -1,6 +1,5 @@
 <RCC>
   <qresource prefix="Open">
-    <file>Icons/Ico.png</file>
     <file>Icons/Ico_transparentAGH.png</file>
     <file>Icons/mask.png</file>
     <file>Icons/bg_color.png</file>

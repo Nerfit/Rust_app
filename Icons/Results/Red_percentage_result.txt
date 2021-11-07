@@ -1,5 +1,0 @@
-___________Results for Red___________
-
-Rust[%]: 6.77
-Plate[%]: 95.46
-Background[%]: 4.54
