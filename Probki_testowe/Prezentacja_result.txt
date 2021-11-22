@@ -1,0 +1,4 @@
+Wyniki dla próbki:	Prezentacja
+Korozja [%]: 15.32
+P³ytka [%]: 80.94
+T³o [%]: 19.06
